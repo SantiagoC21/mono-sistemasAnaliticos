@@ -15,6 +15,9 @@ import DecisionTreeTool from './tools/DecisionTreeTool';
 import KMeansTool from './tools/KMeansTool';
 import WordCloudTool from './tools/WordCloudTool';
 import SentimentTool from './tools/SentimentTool';
+import RandomForestTool from './tools/RandomForestTool';
+import PivotTool from './tools/PivotTool';
+import TimeSeriesTool from './tools/TimeSeriesTool';
 
 const TOOLS = [
   // DESCRIPTIVA
@@ -22,7 +25,7 @@ const TOOLS = [
   { id: "frecuencias", name: "Distribución de Frecuencias", category: "EDA" },
   { id: "correlacion", name: "Matriz de Correlación", category: "EDA" },
   //{ id: "outliers", name: "Detección de Outliers", category: "EDA" },
-  //{ id: "pivot_table", name: "Tabla Dinámica", category: "EDA" },
+  { id: "pivot_table", name: "Tabla Dinámica", category: "EDA" },
 
   // INFERENCIAL
   { id: "ttest", name: "Prueba T (2 Grupos)", category: "Inferencial" },
@@ -432,7 +435,48 @@ const AnalysisDashboard: React.FC = () => {
           />
         )}
 
-        
+        {tool === 'random_forest' && metadata && step >= 2 && (
+          <RandomForestTool 
+            step={step}
+            metadata={metadata}
+            result={analysisResult}
+            loading={loading}
+            onAnalyze={async (xCols, yCol) => {
+              await executeQuantitative('random_forest', xCols, yCol, {});
+              setStep(3);
+            }}
+            onBack={() => setStep(2)}
+          />
+        )}
+
+        {tool === 'pivot_table' && metadata && step >= 2 && (
+          <PivotTool 
+            step={step}
+            metadata={metadata}
+            result={analysisResult}
+            loading={loading}
+            onAnalyze={async (xCols, yCol, params) => {
+              // Pivot: yCol=Index, xCols=[Columns, Values], params={aggfunc}
+              await executeQuantitative('pivot_table', xCols, yCol, params);
+              setStep(3);
+            }}
+            onBack={() => setStep(2)}
+          />
+        )}
+
+        {tool === 'descomposicion_serie' && metadata && step >= 2 && (
+          <TimeSeriesTool 
+            step={step}
+            metadata={metadata}
+            result={analysisResult}
+            loading={loading}
+            onAnalyze={async (xCols, yCol, params) => {
+              await executeQuantitative('descomposicion_serie', xCols, yCol, params);
+              setStep(3);
+            }}
+            onBack={() => setStep(2)}
+          />
+        )}
 
 
 
