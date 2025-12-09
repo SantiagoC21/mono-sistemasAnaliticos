@@ -1,0 +1,392 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: #f8f9fb;
+  color: #333;
+}
+
+/* Header */
+.header {
+  background: white;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #222;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.header-logo:hover {
+  opacity: 0.8;
+}
+
+.header-logo-icon {
+  background: #0066ff;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+/* Main Container */
+.main-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px;
+  min-height: calc(100vh - 57px);
+}
+
+/* Card */
+.card {
+  background: white;
+  padding: 40px 50px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  width: 100%;
+}
+
+.card-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.card-subtitle {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* Dropzone */
+.dropzone {
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  padding: 48px 24px;
+  text-align: center;
+  background: #fafbfc;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.dropzone:hover {
+  border-color: #0066ff;
+  background: #f0f7ff;
+}
+
+.dropzone-success {
+  border-color: #52c41a;
+  background: #f6ffed;
+}
+
+.dropzone-success:hover {
+  border-color: #389e0d;
+  background: #d9f7be;
+}
+
+.dropzone-filename {
+  font-weight: 600;
+  color: #52c41a;
+  word-break: break-all;
+}
+
+.dropzone-file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dropzone-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.dropzone-btn {
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dropzone-btn-change {
+  background: #0066ff;
+  border: 1px solid #0066ff;
+  color: white;
+}
+
+.dropzone-btn-change:hover {
+  background: #0052cc;
+}
+
+.dropzone-btn-remove {
+  background: white;
+  border: 1px solid #d9d9d9;
+  color: #666;
+}
+
+.dropzone-btn-remove:hover {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+
+.dropzone-icon {
+  font-size: 24px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.dropzone-text {
+  font-size: 14px;
+  color: #555;
+}
+
+.dropzone-link {
+  color: #0066ff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dropzone-link:hover {
+  text-decoration: underline;
+}
+
+.dropzone-formats {
+  font-size: 13px;
+  color: #888;
+  margin-top: 8px;
+}
+
+/* Info text */
+.info-text {
+  text-align: center;
+  font-size: 13px;
+  color: #666;
+  margin-top: 24px;
+  line-height: 1.5;
+}
+
+/* Button */
+.btn {
+  display: block;
+  width: fit-content;
+  margin: 20px auto 0;
+  padding: 10px 32px;
+  background: #f5f5f5;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #666;
+  cursor: not-allowed;
+  transition: all 0.2s;
+}
+
+.btn-active {
+  background: #0066ff;
+  border-color: #0066ff;
+  color: white;
+  cursor: pointer;
+}
+
+.btn-active:hover {
+  background: #0052cc;
+}
+
+/* Helper text */
+.helper-text {
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  margin-top: 12px;
+}
+
+/* Hidden input */
+.hidden-input {
+  display: none;
+}
+
+/* Error banner */
+.error-banner {
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #cf1322;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* File Info Bar */
+.file-info-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #fafbfc;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-size: 13px;
+}
+
+.file-info-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.file-info-name {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.file-info-separator {
+  color: #888;
+}
+
+.file-info-right {
+  color: #666;
+}
+
+/* Preview Section */
+.preview-section {
+  margin-top: 20px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.preview-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.preview-subtitle {
+  font-size: 13px;
+  color: #888;
+}
+
+.preview-table-container {
+  overflow-x: auto;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.preview-table th {
+  background: #fafbfc;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 1px solid #e8e8e8;
+  white-space: nowrap;
+}
+
+.preview-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+}
+
+.preview-table tr:last-child td {
+  border-bottom: none;
+}
+
+.preview-table tr:hover {
+  background: #fafbfc;
+}
+
+/* Tool Selector */
+.tool-selector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.tool-selector-left {
+  flex: 1;
+}
+
+.tool-selector-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 4px 0;
+}
+
+.tool-selector-subtitle {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+.tool-selector-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tool-select {
+  padding: 10px 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #666;
+  background: white;
+  min-width: 220px;
+  cursor: pointer;
+}
+
+.tool-select:focus {
+  outline: none;
+  border-color: #0066ff;
+}
