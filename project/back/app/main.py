@@ -12,6 +12,8 @@ app = FastAPI(
 origins = [
     "http://localhost",
     "http://localhost:3000",  # Puerto por defecto de React
+    "http://localhost:5173",  # Puerto de Vite
+    "http://127.0.0.1:5173",
 ]
 
 app.add_middleware(

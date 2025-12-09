@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 class ParetoItem(BaseModel):
     etiqueta: str            # Ej: "Fallo de Motor", "Retraso Logístico"
@@ -18,4 +18,4 @@ class AnalisisRequest(BaseModel):
     tipo_analisis: str  # "descriptivo", "correlacion", "ttest", "regresion_lineal"
     columnas_x: List[str] = [] # Para Regresiones o Descriptivo
     columna_y: str = "" # Para Regresiones o T-Test
-    parametros: Dict[str, int] = {}
+    parametros: Dict[str, Any] = {}

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Body
 from app.services import ingestion, statistics, quantitative
 from app.schemas.analysis import ParetoResponse, AnalisisRequest
 import pandas as pd
+import numpy as np
 import os
 import csv
 
@@ -48,6 +49,9 @@ async def ejecutar_pareto(
         else:
             raise HTTPException(status_code=400, detail="Formato no soportado")
 
+        # Limpiar valores numéricos con formato ($, B, M, K)
+        df = ingestion.limpiar_dataframe(df)
+
         # 2. Ejecutar lógica de Pareto
         resultados = statistics.calcular_pareto(df, columna)
 
@@ -84,6 +88,9 @@ async def ejecutar_analisis_cuantitativo(request: AnalisisRequest):
             df = pd.read_csv(file_path, sep=delimiter, encoding='utf-8')
         elif request.filename.endswith('.xlsx'):
             df = pd.read_excel(file_path)
+
+        # Limpiar valores numéricos con formato ($, B, M, K)
+        df = ingestion.limpiar_dataframe(df)
 
         # 2. Router de lógica (Switch-Case según herramienta)
         tool = request.tipo_analisis
@@ -147,6 +154,39 @@ async def ejecutar_analisis_cuantitativo(request: AnalisisRequest):
             # Y = Columna de texto
             if not request.columna_y: raise ValueError("Seleccione la columna de texto.")
             return quantitative.nlp_sentimiento(df, request.columna_y)
+
+        # ... dentro del if/else ...
+
+        # --- F. RANDOM FOREST ---
+        elif tool == "random_forest":
+            # Detectar regresión o clasificación basado en Target
+            if np.issubdtype(df[request.columna_y].dtype, np.number):
+                tipo = "regresion"
+            else:
+                tipo = "clasificacion"
+            return quantitative.predictivo_random_forest(df, request.columna_y, request.columnas_x, tipo)
+
+        # --- G. SERIES DE TIEMPO (DESCOMPOSICIÓN) ---
+        elif tool == "descomposicion_serie":
+            # X = Columna Fecha, Y = Columna Valor
+            # Parametros opcionales: periodo (ej. 12 meses)
+            periodo = int(request.parametros.get("periodo", 12))
+            return quantitative.series_tiempo_descomposicion(df, request.columnas_x[0], request.columna_y, periodo)
+
+        # --- H. TABLA DINÁMICA ---
+        elif tool == "pivot_table":
+            # Requiere parametros específicos en el request o mapearlos
+            # Usaremos: Y = Index, X[0] = Columns, X[1] = Values
+            if len(request.columnas_x) < 2: 
+                raise ValueError("Para Pivot Table se requieren 2 columnas en X: [Columnas, Valores]")
+            
+            index_col = request.columna_y
+            columns_col = request.columnas_x[0]
+            values_col = request.columnas_x[1]
+            agg = request.parametros.get("aggfunc", "sum") # sum, mean, count
+            
+            return quantitative.wrangling_pivot_table(df, index_col, columns_col, values_col, agg)
+        
 
         else:
             raise HTTPException(status_code=400, detail=f"Herramienta '{tool}' no reconocida.")

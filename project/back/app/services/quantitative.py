@@ -9,6 +9,8 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score, accuracy_score, confusion_matrix
 from sklearn import metrics
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from statsmodels.tsa.seasonal import seasonal_decompose
 from textblob import TextBlob
 import re
 from collections import Counter
@@ -156,8 +158,19 @@ def inferencial_anova(df, col_grupo, col_valor):
 def predictivo_regresion_lineal(df, target, features):
     # Preparar datos
     data = df[[target] + features].dropna()
-    X = data[features]
+    X = data[features].copy()
     y = data[target]
+    
+    # Codificar variables categóricas (One-Hot Encoding)
+    columnas_categoricas = X.select_dtypes(include=['object', 'category']).columns.tolist()
+    columnas_numericas = X.select_dtypes(include=[np.number]).columns.tolist()
+    
+    if columnas_categoricas:
+        # Aplicar One-Hot Encoding a categóricas
+        X = pd.get_dummies(X, columns=columnas_categoricas, drop_first=True)
+    
+    # Obtener nombres de features después del encoding
+    feature_names = X.columns.tolist()
     
     # Dividir entrenamiento (80%) y prueba (20%)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -170,10 +183,11 @@ def predictivo_regresion_lineal(df, target, features):
     return {
         "metrica_r2": r2_score(y_test, y_pred), # Calidad del modelo (0 a 1)
         "error_mse": mean_squared_error(y_test, y_pred),
-        "coeficientes": {feat: coef for feat, coef in zip(features, model.coef_)},
-        "intercepto": model.intercept_,
+        "coeficientes": {feat: float(coef) for feat, coef in zip(feature_names, model.coef_)},
+        "intercepto": float(model.intercept_),
+        "variables_codificadas": columnas_categoricas if columnas_categoricas else None,
         "grafico_prediccion": {
-            "real": y_test.head(20).tolist(),
+            "real": y_test.head(20).values.tolist(),
             "predicho": y_pred[:20].tolist()
         }
     }
@@ -324,4 +338,116 @@ def nlp_sentimiento(df, columna):
             "neutros": neutros
         },
         "muestras": resultados
+    }
+
+
+
+# --- 6. APRENDIZAJE DE ENSAMBLE (GÉRON) ---
+
+def predictivo_random_forest(df, target, features, tipo="regresion"):
+    """
+    Random Forest: Mucho más potente que un árbol simple.
+    """
+    data = df[[target] + features].dropna()
+    X = data[features]
+    y = data[target]
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    if tipo == "regresion":
+        model = RandomForestRegressor(n_estimators=100, random_state=42)
+        metric_name = "R2 Score"
+        metric_val = 0
+    else:
+        # Si es clasificación, necesitamos codificar el target
+        le = LabelEncoder()
+        y_train = le.fit_transform(y_train)
+        y_test = le.transform(y_test)
+        model = RandomForestClassifier(n_estimators=100, random_state=42)
+        metric_name = "Accuracy"
+    
+    model.fit(X_train, y_train)
+    score = model.score(X_test, y_test)
+    
+    # Importancia de características
+    importancias = dict(zip(features, model.feature_importances_))
+    # Ordenar por importancia
+    importancias = dict(sorted(importancias.items(), key=lambda item: item[1], reverse=True))
+    
+    return {
+        "tipo_modelo": f"Random Forest ({tipo})",
+        "metrica_nombre": metric_name,
+        "metrica_valor": score,
+        "importancia_variables": importancias,
+        "mensaje": "Este modelo usa 100 árboles de decisión para promediar resultados y reducir errores."
+    }
+
+# --- 7. SERIES DE TIEMPO AVANZADAS (MCKINNEY) ---
+
+def series_tiempo_descomposicion(df, col_fecha, col_valor, periodo=12):
+    """
+    Separa: Tendencia, Estacionalidad y Residuo.
+    Requiere que los datos sean secuenciales.
+    """
+    try:
+        df[col_fecha] = pd.to_datetime(df[col_fecha])
+    except:
+        return {"error": "No se pudo convertir la columna a fecha."}
+        
+    # Agrupar por fecha y sumar (por si hay varios registros el mismo día)
+    ts = df.groupby(col_fecha)[col_valor].sum().sort_index()
+    
+    # Rellenar huecos (resampling) a mensual 'M' o diario 'D' según necesites
+    # Asumiremos Mensual para este ejemplo
+    ts = ts.resample('M').sum().fillna(0)
+    
+    if len(ts) < periodo * 2:
+        return {"error": f"Se necesitan al menos {periodo*2} puntos de datos (meses/días) para descomponer."}
+
+    # Descomposición aditiva (Valor = Tendencia + Estacionalidad + Ruido)
+    decomposition = seasonal_decompose(ts, model='additive', period=period)
+    
+    # Prepara datos para graficar 4 líneas
+    fechas = ts.index.strftime('%Y-%m-%d').tolist()
+    
+    return {
+        "fechas": fechas,
+        "observado": decomposition.observed.fillna(0).tolist(), # El dato real
+        "tendencia": decomposition.trend.fillna(0).tolist(),    # Hacia dónde va el negocio
+        "estacionalidad": decomposition.seasonal.fillna(0).tolist(), # Patrón repetitivo
+        "residuo": decomposition.resid.fillna(0).tolist()       # Lo inexplicable/ruido
+    }
+
+# --- 8. WRANGLING: TABLAS DINÁMICAS (MCKINNEY) ---
+
+def wrangling_pivot_table(df, index, columns, values, aggfunc="sum"):
+    """
+    Genera una tabla cruzada como en Excel.
+    """
+    # Validar que existan columnas
+    for col in [index, columns, values]:
+        if col not in df.columns:
+            return {"error": f"Columna {col} no encontrada."}
+            
+    # Crear pivot
+    pivot = df.pivot_table(index=index, columns=columns, values=values, aggfunc=aggfunc)
+    
+    # Reemplazar NaN con 0
+    pivot = pivot.fillna(0)
+    
+    # Formatear para el frontend (Heatmap o Tabla)
+    # Eje X: Columnas, Eje Y: Índices, Z: Valores
+    heatmap_data = []
+    for r_idx, row in pivot.iterrows():
+        for c_idx, val in row.items():
+            heatmap_data.append({
+                "x": str(c_idx), # Columna (ej. Mes)
+                "y": str(r_idx), # Indice (ej. Departamento)
+                "value": val
+            })
+            
+    return {
+        "eje_x": list(map(str, pivot.columns.tolist())),
+        "eje_y": list(map(str, pivot.index.tolist())),
+        "datos": heatmap_data
     }
