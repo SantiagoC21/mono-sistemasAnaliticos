@@ -2,19 +2,15 @@
 fastapi>=0.104.0
 uvicorn>=0.24.0
 python-multipart>=0.0.6
-
 # Data Processing
 pandas>=2.1.0
 numpy>=1.26.0
 openpyxl>=3.1.2
-
 # Statistics & Machine Learning
 scipy>=1.11.0
 scikit-learn>=1.3.0
 statsmodels>=0.14.0
-
 # NLP
 textblob>=0.17.1
-
 # Validation (included with FastAPI but explicit)
 pydantic>=2.5.0

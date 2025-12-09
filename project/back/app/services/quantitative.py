@@ -360,6 +360,15 @@ def predictivo_random_forest(df, target, features, tipo="regresion"):
         metric_val = 0
     else:
         # Si es clasificación, necesitamos codificar el target
+        # Validar número de clases para evitar errores con categorías muy raras
+        num_clases = y_train.nunique()
+        if num_clases > 50:
+            return {
+                "error": "La variable objetivo tiene demasiadas clases para un modelo de clasificación estable.",
+                "columna_target": str(target),
+                "num_clases": int(num_clases)
+            }
+
         le = LabelEncoder()
         y_train = le.fit_transform(y_train)
         y_test = le.transform(y_test)
@@ -367,6 +376,7 @@ def predictivo_random_forest(df, target, features, tipo="regresion"):
         metric_name = "Accuracy"
     
     model.fit(X_train, y_train)
+    
     score = model.score(X_test, y_test)
     
     # Importancia de características
@@ -405,7 +415,7 @@ def series_tiempo_descomposicion(df, col_fecha, col_valor, periodo=12):
         return {"error": f"Se necesitan al menos {periodo*2} puntos de datos (meses/días) para descomponer."}
 
     # Descomposición aditiva (Valor = Tendencia + Estacionalidad + Ruido)
-    decomposition = seasonal_decompose(ts, model='additive', period=period)
+    decomposition = seasonal_decompose(ts, model='additive', period=periodo)
     
     # Prepara datos para graficar 4 líneas
     fechas = ts.index.strftime('%Y-%m-%d').tolist()
@@ -428,6 +438,34 @@ def wrangling_pivot_table(df, index, columns, values, aggfunc="sum"):
     for col in [index, columns, values]:
         if col not in df.columns:
             return {"error": f"Columna {col} no encontrada."}
+
+    # Validar que index y columns sean columnas categóricas razonables
+    for cat_col in [index, columns]:
+        serie = df[cat_col]
+        # Deben ser de tipo object o category
+        if serie.dtype not in ["object", "category"]:
+            return {
+                "error": "La columna utilizada como categoría no es de tipo categórico (texto).",
+                "columna": str(cat_col),
+                "dtype": str(serie.dtype)
+            }
+
+        # Evitar columnas tipo ID/nombre con demasiadas categorías únicas
+        num_categorias = serie.nunique(dropna=True)
+        if num_categorias > 100:
+            return {
+                "error": "La columna tiene demasiadas categorías distintas para usarla como dimensión de tabla dinámica (posible ID o identificador único).",
+                "columna": str(cat_col),
+                "num_categorias": int(num_categorias)
+            }
+
+    # Validar que la columna de valores sea numérica
+    if not pd.api.types.is_numeric_dtype(df[values]):
+        return {
+            "error": "La columna de valores debe ser numérica para poder agregarse.",
+            "columna": str(values),
+            "dtype": str(df[values].dtype)
+        }
             
     # Crear pivot
     pivot = df.pivot_table(index=index, columns=columns, values=values, aggfunc=aggfunc)
